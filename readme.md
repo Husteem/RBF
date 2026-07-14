@@ -1,6 +1,6 @@
 # Rust for Bitcoin Core JSON-RPC CLI (`rfb-cli`)
 
-A modular, asynchronously architected command-line interface in Rust to interact with a Bitcoin Core node. This tool is built as part of the **Rust for Bitcoin Program 2.0 Technical Assessment**.
+A modular, asynchronously architected command-line interface in Rust to interact with a Bitcoin Core node. This tool is built as part of the **Rust for Bitcoin Program 2.0**.
 
 ---
 
@@ -40,28 +40,57 @@ rfb-assessment/
 
 ## Setup & Node Installation
 
-This CLI connects to any Bitcoin Core node. The instructions below describe setting up a local Regtest node using **Polar**.
+This CLI connects to any running Bitcoin Core node. Below are two options for setting up your local **Regtest** environment: **Option A (using Polar with Docker)** or **Option B (bare-metal on WSL/Linux without Docker)**.
 
-### 1. Installing Polar
-1. Download Polar from the official website: [lightninglabs.github.io/polar/](https://lightninglabs.github.io/polar/).
-2. Install and launch the application. Ensure Docker Desktop is running in the background as Polar utilizes Docker containers to provision nodes.
+---
 
-### 2. Creating a Bitcoin Core Node
+### Option A: Polar Setup (Requires Docker)
+
+Polar is a visual interface for launching Bitcoin Core and Lightning nodes in a Docker environment.
+
+#### 1. Installing Polar
+1. Download Polar from the GitHub releases page: [github.com/jamaljsr/polar](https://github.com/jamaljsr/polar).
+2. Install and launch the application. Ensure Docker Desktop is running in the background.
+
+#### 2. Creating a Bitcoin Core Node
 1. Inside Polar, click **Create a Network**.
-2. Give your network a name (e.g., `Regtest Local`) and add **1 Bitcoin Core node** (e.g., version `24.0` or higher). You can set LND or other nodes to `0` for this assessment.
+2. Name your network (e.g., `Regtest Local`) and add **1 Bitcoin Core node** (version `24.0` or higher).
 3. Click **Create Network**.
 
-### 3. Starting the Network
+#### 3. Starting the Network
 1. Click **Start** in the top right corner of the Polar dashboard.
-2. Wait a few seconds for the status indicators to turn green.
+2. Wait for the node status indicators to turn green.
 
-### 4. Obtaining RPC Credentials
+#### 4. Obtaining RPC Credentials
 1. Click on your active Bitcoin node (e.g., `backend1`).
-2. Go to the **Connect** tab in the sidebar.
-3. Copy the following connection properties:
-   - **RPC URL** (e.g., `http://127.0.0.1:18443`)
-   - **Username** (e.g., `polaruser`)
-   - **Password** (e.g., `polarpass`)
+2. Navigate to the **Connect** tab in the sidebar.
+3. Copy the **RPC URL** (e.g., `http://127.0.0.1:18443`), **Username** (e.g., `polaruser`), and **Password** (e.g., `polarpass`).
+
+---
+
+### Option B: Bare-Metal WSL/Linux Setup (No Docker Required)
+
+If you do not have Docker installed, you can run Bitcoin Core directly on your Linux/WSL instance.
+
+#### 1. Start Bitcoin Core
+Run `bitcoind` in Regtest mode directly from your shell. You can pass the configuration flags at startup:
+```bash
+bitcoind -regtest -daemon -server -rpcuser=alice -rpcpassword=password -rpcport=18443 -fallbackfee=0.00001 -txindex=1
+```
+
+Or you can use a helper bash script in your home directory if available (e.g., `bash ~/start_bitcoind.sh`).
+
+#### 2. Verify Node is Running
+Verify that the daemon is active and listening for JSON-RPC connections:
+```bash
+bitcoin-cli -regtest -rpcuser=alice -rpcpassword=password getblockchaininfo
+```
+
+#### 3. RPC Credentials
+For this setup, the default connection properties are:
+- **RPC URL**: `http://127.0.0.1:18443`
+- **Username**: `alice`
+- **Password**: `password`
 
 ---
 
@@ -259,3 +288,7 @@ test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; fini
 1. **Parameter Typing**: Unlike standard CLI inputs that are strictly text, Bitcoin Core JSON-RPC expects typed values (e.g. `200` as an integer rather than `"200"`, `true` as a boolean, etc.). We assume that arguments matching valid JSON are intended to be parsed as JSON, falling back to a raw string if parsing fails.
 2. **Wallet URLs**: Bitcoin Core endpoints change depending on whether a wallet is specified (e.g. `/` vs `/wallet/<name>`). The CLI resolves this cleanly by dynamically appending the path suffix when a wallet configuration is present.
 3. **Tokio Runtime**: An async model using Tokio was selected to provide a highly scalable, non-blocking foundations, matching production client libraries.
+
+---
+
+For any problems, feel free to reach out or create an issue.
